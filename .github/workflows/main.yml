@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,25 +25,36 @@ jobs:
 
       - name: Extract project
         run: |
-          ZIP=$(find . -maxdepth 1 -name 'PSShop_Standalone_Project*.zip' -type f | head -n 1)
+          ZIP=$(find . -maxdepth 1 -type f -name 'PSShop_Standalone_Project*.zip' -print -quit)
           if [ -z "$ZIP" ]; then
-            echo "Project ZIP not found"
+            echo "ERROR: Project ZIP not found"
             exit 1
           fi
           mkdir -p /tmp/psshop
           unzip -o "$ZIP" -d /tmp/psshop
           cp -R /tmp/psshop/. .
 
+      - name: Locate Gradle project
+        run: |
+          FILE=$(find . -type f \( -name settings.gradle -o -name settings.gradle.kts \) -not -path './.git/*' -print -quit)
+          if [ -z "$FILE" ]; then
+            echo "ERROR: settings.gradle not found"
+            find . -maxdepth 5 -type f
+            exit 1
+          fi
+          echo "PROJECT_DIR=$(dirname "$FILE")" >> "$GITHUB_ENV"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
 
       - name: Build APK
-        run: gradle assembleDebug
+        run: |
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: PSShop-Standalone-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: '**/build/outputs/apk/debug/*.apk'
+          if-no-files-found: error
