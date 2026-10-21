@@ -25,7 +25,7 @@ jobs:
 
       - name: Extract project
         run: |
-          ZIP=./PSShop_Standalone_Project-15-1.zip
+          ZIP=./PSShop_Standalone_Project-16.zip
           if [ -z "$ZIP" ]; then
             echo "ERROR: Project ZIP not found"
             exit 1
