@@ -1,22 +1,28 @@
-name: Build محل العرض 30 APK
+name: Build محل العرض 33 APK
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'PSShop_Standalone_Project-32.zip'
+      - 'PSShop_Standalone_Project-33.zip'
       - '.github/workflows/main.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract project
+      - name: Extract project ZIP
         run: |
-          unzip -o PSShop_Standalone_Project-30.zip -d /tmp/source
-          ROOT="$(find /tmp/source -name settings.gradle -type f | head -1 | xargs dirname)"
+          ZIP=./PSShop_Standalone_Project-33.zip
+          test -f "$ZIP" || exit 1
+          mkdir -p /tmp/psshop-source
+          unzip -o "$ZIP" -d /tmp/psshop-source
+          SETTINGS="$(find /tmp/psshop-source -name settings.gradle -type f -print -quit)"
+          test -n "$SETTINGS" || exit 1
+          ROOT="$(dirname "$SETTINGS")"
           cp -a "$ROOT"/. .
 
       - uses: actions/setup-java@v4
@@ -33,5 +39,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: PSShop-Standalone-30-APK
+          name: PSShop-Standalone-33-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
