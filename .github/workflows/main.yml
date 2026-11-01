@@ -1,61 +1,37 @@
-
-name: Build PSShop APK
+name: Build محل العرض 30 APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-
-permissions:
-  contents: read
+    paths:
+      - 'PSShop_Standalone_Project-30.zip'
+      - '.github/workflows/main.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - name: Extract project
+        run: |
+          unzip -o PSShop_Standalone_Project-30.zip -d /tmp/source
+          ROOT="$(find /tmp/source -name settings.gradle -type f | head -1 | xargs dirname)"
+          cp -a "$ROOT"/. .
+
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Extract project
-        run: |
-          ZIP=./PSShop_Standalone_Project-30.zip
-
-          if [ -z "$ZIP" ]; then
-            echo "ERROR: Project ZIP not found"
-            exit 1
-          fi
-          mkdir -p /tmp/psshop
-          unzip -o "$ZIP" -d /tmp/psshop
-          cp -R /tmp/psshop/. .
-
-      - name: Locate Gradle project
-        run: |
-          FILE=$(find . -type f \( -name settings.gradle -o -name settings.gradle.kts \) -not -path './.git/*' -print -quit)
-          if [ -z "$FILE" ]; then
-            echo "ERROR: settings.gradle not found"
-            find . -maxdepth 5 -type f
-            exit 1
-          fi
-          echo "PROJECT_DIR=$(dirname "$FILE")" >> "$GITHUB_ENV"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
       - name: Build APK
-        run: |
-          cd "$PROJECT_DIR"
-          gradle assembleDebug
+        run: gradle --no-daemon assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: PSShop-Standalone-APK
-          path: '**/build/outputs/apk/debug/*.apk'
-          if-no-files-found: error
+          name: PSShop-Standalone-30-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
