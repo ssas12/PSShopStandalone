@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'PSShop_Standalone_Project-33.zip'
+      - 'PSShop_Standalone_Project-36-Voice-Fix2.zip'
       - '.github/workflows/main.yml'
 
 jobs:
